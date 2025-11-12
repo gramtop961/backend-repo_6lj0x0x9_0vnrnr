@@ -39,6 +39,7 @@ class Product(BaseModel):
     image: Optional[str] = Field(None, description="Image URL")
     rating: Optional[float] = Field(4.5, ge=0, le=5, description="Average rating")
     in_stock: bool = Field(True, description="Whether product is in stock")
+    buy_url: Optional[str] = Field(None, description="External purchase link (Buy Now)")
 
 class OrderItem(BaseModel):
     product_id: str = Field(..., description="ID of the product")

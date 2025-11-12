@@ -92,6 +92,7 @@ def list_products(category: Optional[str] = None, q: Optional[str] = None, limit
             "image": d.get("image"),
             "rating": float(d.get("rating", 4.5)),
             "in_stock": bool(d.get("in_stock", True)),
+            "buy_url": d.get("buy_url"),
         }
         result.append(item)
     return result
@@ -111,6 +112,28 @@ def get_product(product_id: str):
     doc["id"] = str(doc.pop("_id"))
     return doc
 
+# Create a new product (including external buy_url)
+class ProductCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    price: float
+    category: str
+    image: Optional[str] = None
+    rating: Optional[float] = 4.5
+    in_stock: bool = True
+    buy_url: Optional[str] = None
+
+@app.post("/api/products")
+def create_product(payload: ProductCreate):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    try:
+        doc = payload.model_dump()
+        inserted_id = create_document("product", doc)
+        return {"id": inserted_id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to create product: {str(e)[:120]}")
+
 # Seed sample products for demo
 @app.post("/api/products/seed")
 def seed_products():
@@ -125,6 +148,7 @@ def seed_products():
             "image": "https://images.unsplash.com/photo-1518443895914-6df8ccca9fd8?q=80&w=1200&auto=format&fit=crop",
             "rating": 4.6,
             "in_stock": True,
+            "buy_url": "https://example.com/buy/headphones"
         },
         {
             "title": "Ergonomic Office Chair",
@@ -134,6 +158,7 @@ def seed_products():
             "image": "https://images.unsplash.com/photo-1582582429416-2f6b24fd4a62?q=80&w=1200&auto=format&fit=crop",
             "rating": 4.4,
             "in_stock": True,
+            "buy_url": "https://example.com/buy/chair"
         },
         {
             "title": "Stainless Steel Water Bottle 1L",
@@ -143,6 +168,7 @@ def seed_products():
             "image": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop",
             "rating": 4.8,
             "in_stock": True,
+            "buy_url": "https://example.com/buy/bottle"
         },
         {
             "title": "Smart LED Light Bulb (4-pack)",
@@ -152,6 +178,7 @@ def seed_products():
             "image": "https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?q=80&w=1200&auto=format&fit=crop",
             "rating": 4.3,
             "in_stock": True,
+            "buy_url": "https://example.com/buy/bulb"
         },
     ]
     inserted = 0
